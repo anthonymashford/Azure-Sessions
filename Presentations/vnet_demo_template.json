@@ -1,0 +1,329 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworks_myServersVNet_name": {
+            "defaultValue": "myServersVNet",
+            "type": "String"
+        },
+        "publicIPAddresses_myNetworkGWip_name": {
+            "defaultValue": "myNetworkGWip",
+            "type": "String"
+        },
+        "virtualNetworkGateways_myNetworkGW_name": {
+            "defaultValue": "myNetworkGW",
+            "type": "String"
+        },
+        "virtualNetworks_myWorkstationsVNet_name": {
+            "defaultValue": "myWorkstationsVNet",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2018-12-01",
+            "name": "[parameters('publicIPAddresses_myNetworkGWip_name')]",
+            "location": "northeurope",
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "4c6c0ec5-6847-4af5-82c5-f67dd6e282ec",
+                "ipAddress": "40.112.73.169",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-12-01",
+            "name": "[parameters('virtualNetworks_myServersVNet_name')]",
+            "location": "northeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myWorkstationsVNet_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "5694b792-a616-4ef6-bc9e-79f28ba718ca",
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.1.0/24"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "10.0.1.4",
+                        "8.8.8.8"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "myServersSubnet",
+                        "etag": "W/\"b9b849f7-25ef-45ea-98c3-e65907d1726e\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.1.0/26",
+                            "serviceEndpoints": [],
+                            "delegations": []
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [
+                    {
+                        "name": "Server-Workstation-Peering",
+                        "etag": "W/\"b9b849f7-25ef-45ea-98c3-e65907d1726e\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "peeringState": "Connected",
+                            "remoteVirtualNetwork": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myWorkstationsVNet_name'))]"
+                            },
+                            "allowVirtualNetworkAccess": true,
+                            "allowForwardedTraffic": true,
+                            "allowGatewayTransit": false,
+                            "useRemoteGateways": true,
+                            "remoteAddressSpace": {
+                                "addressPrefixes": [
+                                    "10.0.0.0/24"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-12-01",
+            "name": "[parameters('virtualNetworks_myWorkstationsVNet_name')]",
+            "location": "northeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myServersVNet_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "096512d8-4cec-440a-9efe-d4e1a40cb812",
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/24"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "10.0.1.4",
+                        "8.8.8.8"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "myWorkstationsSubnet",
+                        "etag": "W/\"c1817c10-5a4e-4142-903c-718f3fab6599\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.0.0/26",
+                            "serviceEndpoints": [],
+                            "delegations": []
+                        }
+                    },
+                    {
+                        "name": "GatewaySubnet",
+                        "etag": "W/\"c1817c10-5a4e-4142-903c-718f3fab6599\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.0.248/29",
+                            "serviceEndpoints": [],
+                            "delegations": []
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [
+                    {
+                        "name": "Workstation-Server-Peering",
+                        "etag": "W/\"c1817c10-5a4e-4142-903c-718f3fab6599\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "peeringState": "Connected",
+                            "remoteVirtualNetwork": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myServersVNet_name'))]"
+                            },
+                            "allowVirtualNetworkAccess": true,
+                            "allowForwardedTraffic": true,
+                            "allowGatewayTransit": true,
+                            "useRemoteGateways": false,
+                            "remoteAddressSpace": {
+                                "addressPrefixes": [
+                                    "10.0.1.0/24"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2018-12-01",
+            "name": "[concat(parameters('virtualNetworks_myWorkstationsVNet_name'), '/GatewaySubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myWorkstationsVNet_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "addressPrefix": "10.0.0.248/29",
+                "serviceEndpoints": [],
+                "delegations": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2018-12-01",
+            "name": "[concat(parameters('virtualNetworks_myServersVNet_name'), '/myServersSubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myServersVNet_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "addressPrefix": "10.0.1.0/26",
+                "serviceEndpoints": [],
+                "delegations": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2018-12-01",
+            "name": "[concat(parameters('virtualNetworks_myWorkstationsVNet_name'), '/myWorkstationsSubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myWorkstationsVNet_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "addressPrefix": "10.0.0.0/26",
+                "serviceEndpoints": [],
+                "delegations": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "apiVersion": "2018-12-01",
+            "name": "[parameters('virtualNetworkGateways_myNetworkGW_name')]",
+            "location": "northeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_myNetworkGWip_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_myWorkstationsVNet_name'), 'GatewaySubnet')]"
+            ],
+            "properties": {
+                "resourceGuid": "aaf40df0-b6c2-46d0-aaf9-5d4a406f9564",
+                "ipConfigurations": [
+                    {
+                        "name": "default",
+                        "etag": "W/\"8f355fb5-6b7a-4cd3-bad9-f38ac207478c\"",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_myNetworkGWip_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_myWorkstationsVNet_name'), 'GatewaySubnet')]"
+                            }
+                        }
+                    }
+                ],
+                "sku": {
+                    "name": "Basic",
+                    "tier": "Basic",
+                    "capacity": 2
+                },
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "enableBgp": false,
+                "activeActive": false,
+                "vpnClientConfiguration": {
+                    "vpnClientAddressPool": {
+                        "addressPrefixes": [
+                            "192.168.169.0/24"
+                        ]
+                    },
+                    "vpnClientProtocols": [
+                        "SSTP"
+                    ],
+                    "vpnClientRootCertificates": [
+                        {
+                            "name": "P2SRootCA",
+                            "etag": "W/\"8f355fb5-6b7a-4cd3-bad9-f38ac207478c\"",
+                            "properties": {
+                                "publicCertData": "MIIC5zCCAc+gAwIBAgIQIrjR10wkyZRAY+w6bQcXGTANBgkqhkiG9w0BAQsFADAW MRQwEgYDVQQDDAtQMlNSb290Q2VydDAeFw0xODA5MjgxMTQwNDlaFw0xOTA5Mjgx MjAwNDlaMBYxFDASBgNVBAMMC1AyU1Jvb3RDZXJ0MIIBIjANBgkqhkiG9w0BAQEF AAOCAQ8AMIIBCgKCAQEAnwVfBOhJ2nQDwiXSMfzvPHkARFVp2iq0nVEwLlegP6wE 9j0p7n2sYhPHdPaKqXDPYN6dJPk1HbcE0i8U8lpP+k/7f958soiyD5Jbr3yAjRol T1wbB8tGijnKikcpyNEYY9WDnt/B8l3fDzOFUIUgK2cdLJeabTGUX8ExOMpHWMEZ pDvfLDUrHxbhpjBmZQK5x5w7tRYXEsdzMA2OpfD8nCdRhErrxKnA9dfS6y6v/BOW PpBMZjHgpM60L7r1/CfNc0zuiAoDAZLUoFFgu0fJkozGLZ/BVp+vnSPO2Tp+X8nL JGFF3iN2HCaBOC7ke33B1Z5G1SfT1k+seMyO519EsQIDAQABozEwLzAOBgNVHQ8B Af8EBAMCAgQwHQYDVR0OBBYEFK1BXkFNnervxQwBmwiK+hwZJup0MA0GCSqGSIb3 DQEBCwUAA4IBAQBdiVcyjm8Bj7tuxZrVcyuJIHCSgZ58CVYxQQfLj1v76y3FCMGZ Ibidm1iB214oSSw5ckNwMz7pLj1mhdKKK+ZB9Jh/lriNL9p4eV0sK+hZKEhRm3Pz dHadzXgjuLOmb+7/M51yOIl10qG9rKcZWGNND2EgHHcjRJS4zEitAuq+vcPcfZe2 DqMIyey5/Hk348mqeg68OD7hNnDRxn72kPHU+QvsIgwCQOn4wtVexqAiappYIc69 Y+3k+GpMhnmWJ5pdBcE6AH5h2E4eiTuKjPzVOEdlmpmfQMkaMe/7+ge4LViOvE99 JQUr0XTMElaP+nmub83y64gFE6BUBUIct/TJ"
+                            }
+                        }
+                    ],
+                    "vpnClientRevokedCertificates": [],
+                    "vpnClientIpsecPolicies": []
+                },
+                "bgpSettings": {
+                    "asn": 65515,
+                    "bgpPeeringAddress": "10.0.0.254",
+                    "peerWeight": 0
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "2018-12-01",
+            "name": "[concat(parameters('virtualNetworks_myServersVNet_name'), '/Server-Workstation-Peering')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myServersVNet_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myWorkstationsVNet_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "peeringState": "Connected",
+                "remoteVirtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myWorkstationsVNet_name'))]"
+                },
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": true,
+                "remoteAddressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/24"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "2018-12-01",
+            "name": "[concat(parameters('virtualNetworks_myWorkstationsVNet_name'), '/Workstation-Server-Peering')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myWorkstationsVNet_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myServersVNet_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "peeringState": "Connected",
+                "remoteVirtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_myServersVNet_name'))]"
+                },
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": true,
+                "useRemoteGateways": false,
+                "remoteAddressSpace": {
+                    "addressPrefixes": [
+                        "10.0.1.0/24"
+                    ]
+                }
+            }
+        }
+    ]
+}
